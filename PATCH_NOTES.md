@@ -1,0 +1,1 @@
+Patched 2025-08-17: removed invalid SRI, added JSZip fallback loaders, kept .fletchy output.

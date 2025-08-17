@@ -1,0 +1,305 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiver → Fletchy Converter</title>
+  <meta name="description" content="Convert your Quiver library (.qvlibrary or .zip) into a Fletchy .fletchy bundle directly in your browser. Private, fast, and offline." />
+  <meta property="og:title" content="Quiver to Fletchy Converter — Quiver App Alternative" />
+  <meta property="og:description" content="Migrate from Quiver to Fletchy in minutes. Convert your Quiver library to a .fletchy file locally in the browser." />
+  <meta name="theme-color" content="#9F7AEA" />
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- JSZip for client-side parsing (no SRI to avoid blocking; fallback added below) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    // Fallback loader if JSZip didn't load (CSP/AdBlock/region issues)
+    (function ensureJSZip(){
+      function inject(src, onload){
+        var s=document.createElement('script'); s.src=src; s.onload=onload; s.defer=true; document.head.appendChild(s);
+      }
+      if (!window.JSZip){
+        inject('https://unpkg.com/jszip@3.10.1/dist/jszip.min.js', function(){
+          if (!window.JSZip){
+            inject('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js', function(){});
+          }
+        });
+      }
+    })();
+  </script>
+  <style>
+    @keyframes pulseGlow { 0%,100%{ box-shadow:0 0 0 0 rgba(167,139,250,.45);} 50%{ box-shadow:0 0 0 8px rgba(167,139,250,.18);} }
+    @keyframes spinSlow { to { transform: rotate(360deg); } }
+    .glass { backdrop-filter: saturate(140%) blur(10px); background: rgba(255,255,255,.65); }
+  </style>
+</head>
+<body class="bg-brand-50 text-slate-800 antialiased">
+  <header class="sticky top-0 z-30 bg-brand-50/70 glass border-b border-white/40">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+        <a href="#" class="flex items-center gap-2 font-semibold text-slate-900">
+          <span class="inline-flex h-8 w-8 items-center justify-center">
+            <span class="block h-8 w-8 rounded-lg border border-slate-900 bg-[#48EF91]"></span>
+          </span>
+          <span class="text-lg">Fletchy Converter</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-6 text-sm text-slate-600">
+          <a class="hover:text-slate-900" href="#how">How it works</a>
+          <a class="hover:text-slate-900" href="#faq">FAQ</a>
+          <a class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 font-medium text-white hover:bg-slate-800" href="https://yxanu.github.io/fletchy">Open Web App</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="relative overflow-hidden">
+      <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-brand-100 via-white to-brand-200"></div>
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
+        <header class="max-w-3xl">
+          <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">Quiver → Fletchy Converter</h1>
+          <p class="mt-3 text-lg text-slate-600">Drop your <code class="rounded bg-slate-100 px-2 py-0.5">.qvlibrary</code> or <code class="rounded bg-slate-100 px-2 py-0.5">Quiver.qvlibrary.zip</code> to convert your notes — fast, private, and offline.</p>
+          <p class="mt-2 text-slate-500 text-sm">No uploads. Everything runs in your browser.</p>
+        </header>
+
+        <div class="mt-10 grid gap-8 lg:grid-cols-[minmax(0,740px)_1fr]">
+          <div class="rounded-2xl border border-slate-200 bg-white/90 shadow-xl ring-1 ring-slate-900/5">
+            <div class="grid gap-0 sm:gap-2 p-4 sm:p-6">
+              <div id="drop" class="group relative rounded-xl border-2 border-dashed border-slate-300 bg-white/60 p-8 text-center transition hover:bg-white">
+                <div class="absolute inset-0 rounded-xl pointer-events-none group-hover:ring-2 group-hover:ring-brand-300"></div>
+                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-brand-100 text-brand-700 ring-1 ring-brand-200" style="animation:pulseGlow 2.5s infinite;">
+                  <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <p class="mt-3 font-medium text-slate-900">Drop your <em>.qvlibrary</em> or <em>.zip</em> here</p>
+                <p class="mt-1 text-sm text-slate-500">or choose a file from your computer</p>
+                <div class="mt-4 flex items-center justify-center">
+                  <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-white hover:bg-slate-800">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Choose file
+                    <input id="file" type="file" accept=".zip,.qvlibrary" hidden>
+                  </label>
+                </div>
+              </div>
+
+              <div class="mt-6 grid gap-4">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="font-medium text-slate-700">Progress</span>
+                  <span id="stageLabel" class="text-slate-500">Waiting for file…</span>
+                </div>
+                <div class="relative h-2 w-full rounded-full bg-slate-200">
+                  <div id="bar" class="h-2 rounded-full bg-brand-500 transition-all duration-500" style="width:0%"></div>
+                  <div id="spinner" class="absolute -top-1 h-4 w-4 rounded-full bg-brand-500" style="left:0%; animation:spinSlow 1.2s linear infinite;"></div>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                  <span id="b1" class="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">Upload</span>
+                  <span id="b2" class="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">Converting</span>
+                  <span id="b3" class="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">Download</span>
+                </div>
+                <div id="log" class="mt-2 hidden rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-mono text-slate-700 max-h-56 overflow-auto"></div>
+                <div id="success" class="hidden mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-800">
+                  <div class="flex items-center gap-2">
+                    <svg class="h-5 w-5 text-emerald-500" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <p class="font-medium">Converted! Your <code class="rounded bg-white/60 px-1">.fletchy</code> file has been downloaded.</p>
+                  </div>
+                  <p class="mt-1 text-sm">Import it in the Fletchy app (Web or Desktop).</p>
+                  <div class="mt-2">
+                    <a href="https://yxanu.github.io/fletchy" class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-white hover:bg-slate-800">Open Fletchy<span aria-hidden>↗</span></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="glass rounded-2xl border border-white/40 p-6" id="how">
+            <h2 class="text-lg font-semibold text-slate-900">How it works</h2>
+            <ol class="mt-2 list-decimal pl-5 text-slate-700 text-sm space-y-1">
+              <li>Export your Quiver library as <strong>.qvlibrary</strong> (or zip the folder).</li>
+              <li>Drop the file above.</li>
+              <li>We parse notebooks and notes in-browser and package a <code class="rounded bg-slate-100 px-1">.fletchy</code> file.</li>
+              <li>Import the file into Fletchy.</li>
+            </ol>
+            <h3 class="mt-6 text-sm font-semibold text-slate-900">Included in conversion</h3>
+            <ul class="mt-2 list-disc pl-5 text-slate-700 text-sm space-y-1">
+              <li>Markdown, code cells (with language when present)</li>
+              <li>LaTeX blocks and plain text cells</li>
+              <li>Notebook structure</li>
+            </ul>
+            <h3 class="mt-6 text-sm font-semibold text-slate-900">Privacy</h3>
+            <p class="mt-2 text-slate-700 text-sm">Files never leave your device. Conversion is 100% client-side and offline-capable.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="border-t border-slate-200 bg-white/60 py-12" id="faq">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold text-slate-900">FAQ</h2>
+        <details class="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+          <summary class="cursor-pointer font-medium">Is Fletchy a good Quiver app alternative?</summary>
+          <p class="mt-2 text-sm text-slate-700">Yes. Fletchy supports Markdown, code, LaTeX, and Mermaid diagrams in one place and is actively maintained. This converter moves your Quiver library to Fletchy in minutes.</p>
+        </details>
+        <details class="mt-2 rounded-xl border border-slate-200 bg-white p-4">
+          <summary class="cursor-pointer font-medium">Does this upload my notes?</summary>
+          <p class="mt-2 text-sm text-slate-700">No. The converter runs entirely in your browser.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-200 py-10 text-center text-sm text-slate-500">
+    <p>© <span id="y"></span> Fletchy • MIT License</p>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    const drop = document.getElementById('drop');
+    const file = document.getElementById('file');
+    const bar = document.getElementById('bar');
+    const spinner = document.getElementById('spinner');
+    const stage = document.getElementById('stageLabel');
+    const logBox = document.getElementById('log');
+    const success = document.getElementById('success');
+    const badges = { b1: document.getElementById('b1'), b2: document.getElementById('b2'), b3: document.getElementById('b3') };
+
+    function mark(el, ok){
+      el.className = 'rounded-full px-2 py-1 text-xs border ' + (ok ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600');
+      if (ok) el.innerHTML = '✔ ' + el.textContent.replace(/^✔\s*/,'')
+    }
+    function setProgress(p, label){
+      bar.style.width = p + '%';
+      spinner.style.left = 'calc(' + p + '% - 8px)';
+      if (label) stage.textContent = label;
+    }
+    function log(msg){
+      logBox.classList.remove('hidden');
+      logBox.textContent += msg + "\n";
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+    function uid(p='id'){ return p + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+
+    async function convertZip(file){
+      success.classList.add('hidden');
+      logBox.textContent='';
+      setProgress(5, 'Reading file…');
+      mark(badges.b1, true);
+
+      const isZip = file.name.toLowerCase().endsWith('.zip');
+      const isLibrary = file.name.toLowerCase().endsWith('.qvlibrary');
+      if (!isZip && !isLibrary){
+        setProgress(0, 'Waiting for file…');
+        alert('Please provide a .qvlibrary or .zip');
+        return;
+      }
+
+      const buf = await file.arrayBuffer();
+      setProgress(20, 'Unpacking…');
+      const zip = await JSZip.loadAsync(buf);
+
+      const out = {
+        notebooks: [],
+        activeNotebook: null,
+        activeNote: null,
+        theme: 'light',
+        lang: 'en'
+      };
+
+      const entries = Object.keys(zip.files);
+      const notebooks = new Map();
+      for (const p of entries) if (p.endsWith('.qvnotebook/')) notebooks.set(p, true);
+      log('Found notebooks: ' + notebooks.size);
+      setProgress(35, 'Scanning notebooks…');
+
+      for (const nbPath of notebooks.keys()) {
+        const metaPath = nbPath + 'meta.json';
+        let nbMeta = {};
+        if (zip.files[metaPath]) {
+          try { nbMeta = JSON.parse(await zip.files[metaPath].async('string')); } catch(e){ log('Notebook meta parse error: ' + e.message); }
+        }
+        const nb = { id: uid('nb'), name: nbMeta.name || 'Notebook', icon: '📒', notes: [] };
+
+        for (const p of entries) {
+          if (!p.startsWith(nbPath)) continue;
+          if (p.endsWith('.qvnote/')) {
+            const noteDir = p;
+            const noteMetaPath = noteDir + 'meta.json';
+            const contentPath = noteDir + 'content.json';
+            let nmeta = {}; let content = { cells: [] };
+            if (zip.files[noteMetaPath]) { try { nmeta = JSON.parse(await zip.files[noteMetaPath].async('string')); } catch(e){ log('Note meta parse error: ' + e.message);} }
+            if (zip.files[contentPath]) { try { content = JSON.parse(await zip.files[contentPath].async('string')); } catch(e){ log('Note content parse error: ' + e.message);} }
+
+            const note = { id: uid('note'), title: nmeta.title || 'Note', cells: [] };
+            for (const c of (content.cells||[])) {
+              if (c.type === 'markdown') {
+                note.cells.push({ id: uid('cell'), type: 'markdown', content: c.data || '' });
+              } else if (c.type === 'code' || c.type === 'text') {
+                note.cells.push({ id: uid('cell'), type: 'code', language: c.language || 'plaintext', content: c.data || '' });
+              } else if (c.type === 'latex') {
+                note.cells.push({ id: uid('cell'), type: 'latex', content: c.data || '' });
+              } else {
+                note.cells.push({ id: uid('cell'), type: 'markdown', content: String(c.data || '') });
+              }
+            }
+            nb.notes.push(note);
+            if (!out.activeNote) out.activeNote = note.id;
+          }
+        }
+
+        out.notebooks.push(nb);
+        if (!out.activeNotebook) out.activeNotebook = nb.id;
+      }
+
+      mark(badges.b2, true);
+      setProgress(70, 'Packaging result…');
+      const blob = new Blob([JSON.stringify(out, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+
+      (function confetti(){
+        const n = 50;
+        for (let i=0;i<n;i++){
+          const s = document.createElement('span');
+          s.textContent = ['◆','▲','●','■'][Math.floor(Math.random()*4)];
+          s.style.position='fixed'; s.style.left = Math.random()*100 + 'vw'; s.style.top = '-10px';
+          s.style.fontSize = (12 + Math.random()*12) + 'px';
+          s.style.color = ['#a78bfa','#f472b6','#fb923c','#48EF91'][Math.floor(Math.random()*4)];
+          s.style.opacity = .9; s.style.pointerEvents='none'; s.style.transform = 'translateY(0)';
+          s.style.transition = 'transform 1.2s ease-out, opacity 1.2s ease-out'; document.body.appendChild(s);
+          requestAnimationFrame(()=>{ s.style.transform = 'translateY(' + (60+Math.random()*80) + 'vh) rotate(' + (Math.random()*360) + 'deg)'; s.style.opacity = 0; });
+          setTimeout(()=>s.remove(),1400);
+        }
+      })();
+
+      setProgress(100, 'Ready');
+      mark(badges.b3, true);
+      success.classList.remove('hidden');
+      log('Done. Notebooks: ' + out.notebooks.length);
+
+      const a = document.createElement('a');
+      a.href = url;
+      const base = file.name.replace(/\.(zip|qvlibrary)$/i,'') || 'fletchy-from-quiver';
+      a.download = base + '.fletchy';
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    }
+
+    function bindDnD(){
+      drop.addEventListener('dragover', (e)=>{ e.preventDefault(); drop.classList.add('ring-2','ring-brand-300'); });
+      drop.addEventListener('dragleave', ()=> drop.classList.remove('ring-2','ring-brand-300'));
+      drop.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        drop.classList.remove('ring-2','ring-brand-300');
+        const f = e.dataTransfer.files[0];
+        if (f){ setProgress(10, 'Uploading…'); convertZip(f); }
+      });
+      file.addEventListener('change', ()=>{
+        const f = file.files[0];
+        if (f){ setProgress(10, 'Uploading…'); convertZip(f); }
+      });
+    }
+
+    bindDnD();
+    document.getElementById('log').textContent='';
+  </script>
+</body>
+</html>
