@@ -63,8 +63,3 @@ MIT © Yxanu
 
 ---
 
-## SEO Notes
-
-This repository intentionally targets the search intent around **"Quiver app alternative"** and **"migrate from Quiver"** by providing a useful, no‑setup converter. If you're evaluating alternatives to Quiver, try **Fletchy** for a clean, maintained, multi‑format notebook experience.
-
-*Updated: 2025-08-17*
